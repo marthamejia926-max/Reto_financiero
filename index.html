@@ -160,32 +160,37 @@
 </head>
 <body class="flex flex-col justify-between">
 
+  <!-- Fondo espacial animado -->
   <div id="space-bg" class="space-canvas">
     <div class="nebula w-96 h-96 bg-fuchsia-600 -top-16 -left-16"></div>
     <div class="nebula w-[28rem] h-[28rem] bg-indigo-500 bottom-0 right-0" style="animation-delay: -7s;"></div>
     <div class="nebula w-72 h-72 bg-cyan-500 top-1/3 left-1/2" style="animation-delay: -12s;"></div>
   </div>
 
+  <!-- ================= PANTALLA 1: INICIO Y REGISTRO DE EQUIPOS ================= -->
   <main id="screen-setup" class="relative z-10 max-w-4xl w-full mx-auto px-4 py-5 sm:py-8 flex-1 flex flex-col justify-center">
     <div class="bg-indigo-950/85 backdrop-blur-md border border-indigo-400/30 rounded-3xl p-5 sm:p-8 shadow-2xl animate-pop">
+
+      <!-- Barra superior -->
       <div class="flex flex-wrap items-center justify-between gap-2 mb-5">
         <button type="button" onclick="openRulesModal()" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-indigo-900/90 hover:bg-indigo-800 border border-indigo-400/30 text-indigo-100 text-xs sm:text-sm font-bold transition">
           <span>📜</span> Ver Reglas y Objetivo
         </button>
         <button type="button" onclick="openLeaderboardModal()" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-amber-400/20 hover:bg-amber-400/30 border border-amber-400/50 text-amber-300 text-xs sm:text-sm font-bold transition">
-          <span>🏆</span> Tabla de Resultados / Historial (<span id="setup-history-count">0</span>)
+          <span>🏆</span> Tabla de Resultados Compartida (<span id="setup-history-count">0</span>)
         </button>
       </div>
 
+      <!-- Encabezado -->
       <div class="text-center mb-6">
         <span class="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-indigo-500/25 border border-indigo-400/40 text-indigo-200 text-xs font-bold tracking-wide uppercase mb-2">
-          <span>🚀</span> Ingeniería Económica · Reto Interactivo
+          <span>🚀</span> Ingeniería Económica · ITM · Reto Interactivo
         </span>
         <h1 class="font-game text-3xl sm:text-5xl font-bold text-white drop-shadow-md leading-tight">
           Reto financiero: <span class="text-amber-400">¿Quién toma la mejor decisión?</span>
         </h1>
         <p class="text-indigo-200 mt-2.5 text-sm sm:text-base max-w-2xl mx-auto">
-          Registra el nombre de tu equipo o empresa, responde los 8 retos financieros (100 pts c/u) y compara tu puntaje final en el ranking.
+          Registra el nombre de tu equipo o empresa, responde los 8 retos financieros (100 pts c/u) y compara tu puntaje final en el ranking global.
         </p>
         <div class="mt-3.5 inline-flex flex-wrap items-center justify-center gap-1.5 px-4 py-1.5 rounded-2xl bg-indigo-900/80 border border-amber-400/35 text-xs sm:text-sm text-amber-200 font-semibold shadow-sm">
           <span>✨</span>
@@ -193,6 +198,7 @@
         </div>
       </div>
 
+      <!-- Configuración -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-indigo-900/45 p-5 rounded-2xl border border-indigo-400/25 mb-6">
         <div>
           <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
@@ -200,7 +206,7 @@
               <span>🏢</span> Cantidad de equipos (1 a 10):
             </label>
             <div class="flex flex-wrap gap-1">
-              <button type="button" onclick="setTeamCount(1)" id="btn-count-1" class="px-2 py-1 rounded-lg text-xs font-bold bg-amber-400 text-indigo-950 transition" title="1 Equipo / Individual">1</button>
+              <button type="button" onclick="setTeamCount(1)" id="btn-count-1" class="px-2 py-1 rounded-lg text-xs font-bold bg-amber-400 text-indigo-950 transition">1</button>
               <button type="button" onclick="setTeamCount(2)" id="btn-count-2" class="px-2 py-1 rounded-lg text-xs font-bold bg-indigo-800 text-indigo-200 hover:bg-indigo-700 transition">2</button>
               <button type="button" onclick="setTeamCount(3)" id="btn-count-3" class="px-2 py-1 rounded-lg text-xs font-bold bg-indigo-800 text-indigo-200 hover:bg-indigo-700 transition">3</button>
               <button type="button" onclick="setTeamCount(4)" id="btn-count-4" class="px-2 py-1 rounded-lg text-xs font-bold bg-indigo-800 text-indigo-200 hover:bg-indigo-700 transition">4</button>
@@ -244,7 +250,7 @@
               </button>
               <button type="button" onclick="setBoardMode('wordwall')" id="mode-wordwall" class="p-3 rounded-xl border-2 border-indigo-700 bg-indigo-900/50 text-left hover:border-indigo-500 transition">
                 <div class="font-bold text-sm text-white">Modo Galaxia Wordwall (Todas las respuestas)</div>
-                <div class="text-xs text-indigo-300">Las 8 respuestas están en pantalla como en Wordwall y van desapareciendo al acertar.</div>
+                <div class="text-xs text-indigo-300">Las 8 respuestas están en pantalla y van desapareciendo al acertar.</div>
               </button>
             </div>
           </div>
@@ -259,7 +265,9 @@
     </div>
   </main>
 
+  <!-- ================= PANTALLA 2: JUEGO PRINCIPAL ================= -->
   <section id="screen-game" class="hidden relative z-10 flex-1 flex flex-col justify-between min-h-screen px-3 sm:px-6 py-3 sm:py-4">
+
     <header class="max-w-6xl w-full mx-auto space-y-2">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <div class="flex items-center gap-3 bg-indigo-950/85 backdrop-blur-md border border-indigo-400/30 px-4 py-2 rounded-2xl shadow-lg">
@@ -342,6 +350,7 @@
     </footer>
   </section>
 
+  <!-- ================= MODAL DE PROCEDIMIENTO ================= -->
   <div id="modal-procedure" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
     <div class="bg-slate-900 border-2 border-indigo-400/50 rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl animate-pop text-white">
       <div class="flex items-center justify-between mb-4">
@@ -377,6 +386,7 @@
     </div>
   </div>
 
+  <!-- ================= PANTALLA 3: RESULTADOS FINALES ================= -->
   <section id="screen-results" class="hidden relative z-10 max-w-4xl w-full mx-auto px-4 py-6 sm:py-8 flex-1 flex flex-col justify-center">
     <div class="bg-indigo-950/90 backdrop-blur-md border border-amber-400/40 rounded-3xl p-6 sm:p-9 shadow-2xl text-center animate-pop">
       <div class="text-5xl sm:text-6xl mb-2">🏆</div>
@@ -384,10 +394,10 @@
         Resultado Final de la Partida
       </span>
       <h2 id="winner-headline" class="font-game text-3xl sm:text-5xl font-bold text-white mt-3">
-        ¡Excelente trabajo, Equipo 1!
+        ¡Excelente trabajo!
       </h2>
       <p id="winner-substats" class="text-indigo-200 mt-2 text-sm sm:text-base font-medium">
-        Puntaje total: 800 / 800 pts · 100% de acierto
+        Puntaje total: 800 / 800 pts
       </p>
 
       <div id="final-leaderboard" class="max-w-2xl mx-auto my-6 space-y-3 max-h-80 overflow-y-auto pr-1"></div>
@@ -397,7 +407,7 @@
           ✍️ Registrar otro equipo / Jugar de nuevo
         </button>
         <button type="button" onclick="openLeaderboardModal()" class="wordwall-tile tile-emerald px-6 py-3.5 text-white font-game text-lg font-bold">
-          📊 Ver Tabla Histórica (<span id="results-history-count">0</span>)
+          📊 Ver Ranking Global (<span id="results-history-count">0</span>)
         </button>
         <button type="button" onclick="restartSameSettings()" class="wordwall-tile tile-indigo px-5 py-3.5 text-white font-game text-base sm:text-lg font-bold">
           🔄 Repetir mismos equipos
@@ -406,6 +416,7 @@
     </div>
   </section>
 
+  <!-- ================= MODAL: REGLAS ================= -->
   <div id="modal-rules" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
     <div class="bg-slate-900 border-2 border-indigo-400/50 rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl animate-pop text-white max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between mb-4">
@@ -443,14 +454,15 @@
     </div>
   </div>
 
+  <!-- ================= MODAL: TABLA HISTÓRICA COMPARTIDA ================= -->
   <div id="modal-leaderboard" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
     <div class="bg-slate-900 border-2 border-amber-400/50 rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl animate-pop text-white max-h-[90vh] flex flex-col">
       <div class="flex items-center justify-between mb-4">
         <div>
           <h3 class="font-game text-2xl sm:text-3xl font-bold text-amber-400 flex items-center gap-2">
-            <span>🏆</span> Tabla de Resultados
+            <span>🏆</span> Tabla de Resultados Compartida
           </h3>
-          <p class="text-xs sm:text-sm text-indigo-200">Registro guardado de todos los equipos y participantes que han completado el reto.</p>
+          <p class="text-xs sm:text-sm text-indigo-200">Puntajes sincronizados de todos los participantes y computadores.</p>
         </div>
         <button type="button" onclick="closeLeaderboardModal()" class="text-indigo-300 hover:text-white text-2xl font-bold px-2">✕</button>
       </div>
@@ -458,8 +470,8 @@
       <div id="history-list-container" class="flex-1 overflow-y-auto space-y-2.5 my-2 pr-1"></div>
 
       <div class="flex flex-wrap items-center justify-between gap-3 pt-4 mt-3 border-t border-indigo-500/30">
-        <button type="button" onclick="clearHistory()" class="px-3.5 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-400/40 text-rose-200 text-xs font-bold transition">
-          🗑️ Borrar historial
+        <button type="button" onclick="openLeaderboardModal()" class="px-3.5 py-2 rounded-xl bg-indigo-800 hover:bg-indigo-700 border border-indigo-400/40 text-indigo-100 text-xs font-bold transition">
+          🔄 Actualizar tabla
         </button>
         <button type="button" onclick="closeLeaderboardModal()" class="wordwall-tile tile-amber px-6 py-2.5 text-indigo-950 font-game text-base font-bold">
           Cerrar
@@ -468,19 +480,7 @@
     </div>
   </div>
 
-  <!-- Modal de confirmación para borrar historial -->
-  <div id="modal-clear-confirm" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
-    <div class="bg-indigo-950 border border-rose-400/50 rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl">
-      <h4 class="font-game text-xl font-bold text-white mb-2">¿Borrar todo el historial compartido?</h4>
-      <p class="text-sm text-indigo-200 mb-5">Se eliminarán todos los puntajes registrados en la nube para todos los participantes.</p>
-      <div class="flex gap-3 justify-center">
-        <button type="button" onclick="closeClearConfirmModal()" class="px-4 py-2 rounded-xl bg-indigo-800 hover:bg-indigo-700 text-white font-semibold">Cancelar</button>
-        <button type="button" onclick="executeClearHistory()" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold">Sí, borrar todo</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal de confirmación ligero -->
+  <!-- Modal de confirmación -->
   <div id="modal-confirm" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
     <div class="bg-indigo-950 border border-indigo-400/40 rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl">
       <h4 class="font-game text-xl font-bold text-white mb-2">¿Volver al registro de equipos?</h4>
@@ -493,6 +493,9 @@
   </div>
 
   <script>
+    // ==========================================
+    // 1. BASE DE DATOS DE PREGUNTAS
+    // ==========================================
     const QUESTIONS = [
       {
         id: 1,
@@ -608,10 +611,12 @@
       }
     ];
 
-    let sharedHistory = [];
-    let cloudSaveTeam = null;
-    let cloudClearHistory = null;
+    const STORAGE_KEY = "reto_financiero_itm_shared_v1";
+    const CLOUD_ENDPOINT = "https://kvdb.io/8W9nK7xP3mQ2vR5tY1zL4c/reto_financiero_itm_2026";
 
+    // ==========================================
+    // 2. ESTADO GLOBAL DEL JUEGO
+    // ==========================================
     let lastAttemptCorrect = true;
     let lastSelectedText = "";
 
@@ -646,6 +651,9 @@
       { badge: "bg-teal-400", text: "text-teal-300" }
     ];
 
+    // ==========================================
+    // 3. WEB AUDIO API
+    // ==========================================
     let audioCtx = null;
 
     function getAudioContext() {
@@ -703,6 +711,9 @@
       document.getElementById("btn-sound").textContent = state.soundEnabled ? "🔊" : "🔇";
     }
 
+    // ==========================================
+    // 4. FONDO ESPACIAL ANIMADO
+    // ==========================================
     function initSpaceBackground() {
       const container = document.getElementById("space-bg");
       for (let i = 0; i < 65; i++) {
@@ -744,6 +755,9 @@
       });
     }
 
+    // ==========================================
+    // 5. CONFIGURACIÓN DE EQUIPOS (1 A 10)
+    // ==========================================
     function setTeamCount(count) {
       state.teamCount = count;
       [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].forEach(n => {
@@ -775,7 +789,7 @@
       for (let i = 0; i < state.teamCount; i++) {
         const defaultName = currentValues[i] || (state.teamCount === 1 ? "" : `Equipo ${i + 1}`);
         const placeholderText = state.teamCount === 1
-          ? "Escribe el nombre de tu equipo o empresa..."
+          ? "Escribe el nombre de tu equipo o estudiante..."
           : `Nombre del Equipo ${i + 1}`;
         const colorDot = TEAM_COLORS[i % TEAM_COLORS.length].badge;
 
@@ -815,6 +829,9 @@
       }
     }
 
+    // ==========================================
+    // 6. LÓGICA PRINCIPAL DE LA PARTIDA
+    // ==========================================
     function startGame() {
       playSound("click");
       const inputs = document.querySelectorAll("#team-inputs input");
@@ -969,6 +986,9 @@
       }
     }
 
+    // ==========================================
+    // 7. TEMPORIZADOR
+    // ==========================================
     function startTimer() {
       updateTimerDisplay();
       state.timerInterval = setInterval(() => {
@@ -1036,6 +1056,9 @@
       });
     }
 
+    // ==========================================
+    // 8. VALIDACIÓN DE RESPUESTAS
+    // ==========================================
     function handleOptionAnswer(selectedLetter) {
       if (state.questionSolved) return;
 
@@ -1162,6 +1185,9 @@
       openExplanationModal(false);
     }
 
+    // ==========================================
+    // 9. MODAL DE EXPLICACIÓN
+    // ==========================================
     function openExplanationModal(earnedPoints = true) {
       const q = QUESTIONS[state.currentQIndex];
       const correctOpt = q.options.find(o => o.letter === q.correctLetter);
@@ -1221,49 +1247,86 @@
       } else {
         showFinalResults();
       }
+    }
+
     // ==========================================
-    // 10. PERSISTENCIA EN LA NUBE Y RESULTADOS
+    // 10. PERSISTENCIA EN LA NUBE + LOCALSTORAGE
     // ==========================================
-    function getSavedHistory() {
-      return sharedHistory;
+    function getLocalHistory() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    async function fetchSharedHistory() {
+      try {
+        const res = await fetch(CLOUD_ENDPOINT, { cache: "no-store" });
+        if (res.ok) {
+          const text = await res.text();
+          if (text) {
+            const remote = JSON.parse(text);
+            if (Array.isArray(remote)) {
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(remote));
+              return remote;
+            }
+          }
+        }
+      } catch (e) {}
+      return getLocalHistory();
     }
 
     async function saveTeamsToHistory(teamsList) {
       const now = new Date();
-      const timeStr = now.toLocaleDateString([], { day: "2-digit", month: "2-digit" }) + " " + now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      const dateStr = now.toLocaleDateString([], { day: "2-digit", month: "2-digit" });
+      const timeStr = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-      for (const t of teamsList) {
+      const newEntries = teamsList.map(t => {
         const maxPossible = QUESTIONS.length * 100;
         const accuracy = state.teams.length === 1
           ? Math.round((t.correctCount / QUESTIONS.length) * 100)
           : Math.round((t.score / maxPossible) * 100);
 
-        const entry = {
+        return {
           name: t.name,
           score: t.score,
           correctCount: t.correctCount,
           totalQuestions: QUESTIONS.length,
           accuracy: accuracy,
           totalTimeSec: t.totalTimeSec,
-          mode: state.teams.length === 1 ? "Individual (8 retos)" : `Grupal (${state.teams.length} equipos)`,
-          timestamp: timeStr,
-          createdAt: Date.now()
+          mode: state.teams.length === 1 ? "Individual" : `${state.teams.length} equipos`,
+          timestamp: `${dateStr} ${timeStr}`
         };
+      });
 
-        // Actualización inmediata en memoria
-        sharedHistory.push(entry);
-        sharedHistory.sort((a, b) => b.score - a.score || a.totalTimeSec - b.totalTimeSec);
-        updateHistoryBadges();
+      const currentHistory = await fetchSharedHistory();
+      const merged = [...currentHistory, ...newEntries];
+      merged.sort((a, b) => b.score - a.score || a.totalTimeSec - b.totalTimeSec);
+      const trimmed = merged.slice(0, 100);
 
-        // Sincronización en la nube para que otros PCs lo vean
-        if (typeof cloudSaveTeam === "function") {
-          await cloudSaveTeam(entry);
-        }
-      }
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed));
+      } catch (e) {}
+
+      try {
+        await fetch(CLOUD_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(trimmed)
+        });
+      } catch (e) {}
+
+      updateHistoryBadges(trimmed.length);
     }
 
-    function updateHistoryBadges() {
-      const count = getSavedHistory().length;
+    async function updateHistoryBadges(knownCount = null) {
+      let count = knownCount;
+      if (count === null) {
+        const list = await fetchSharedHistory();
+        count = list.length;
+      }
       const b1 = document.getElementById("setup-history-count");
       const b2 = document.getElementById("results-history-count");
       if (b1) b1.textContent = count;
@@ -1315,7 +1378,7 @@
         } else {
           headline.textContent = `¡Ganador: ${winners[0].name}!`;
         }
-        substats.textContent = "Resultados guardados automáticamente en la Tabla Histórica de Posiciones.";
+        substats.textContent = "Resultados sincronizados automáticamente en el Ranking Global.";
 
         const medals = ["🥇", "🥈", "🥉", "🏅", "🏅", "🏅", "🏅", "🏅", "🏅", "🏅"];
         sorted.forEach((team, idx) => {
@@ -1341,10 +1404,19 @@
       }
     }
 
-    function openLeaderboardModal() {
+    async function openLeaderboardModal() {
       playSound("click");
       const container = document.getElementById("history-list-container");
-      const history = getSavedHistory();
+      container.innerHTML = `
+        <div class="text-center py-8 text-indigo-200">
+          <div class="text-3xl mb-2 animate-spin inline-block">⏳</div>
+          <p class="font-semibold text-sm">Cargando resultados sincronizados...</p>
+        </div>
+      `;
+      document.getElementById("modal-leaderboard").classList.remove("hidden");
+
+      const history = await fetchSharedHistory();
+      updateHistoryBadges(history.length);
       container.innerHTML = "";
 
       if (history.length === 0) {
@@ -1382,31 +1454,10 @@
           container.appendChild(row);
         });
       }
-
-      document.getElementById("modal-leaderboard").classList.remove("hidden");
     }
 
     function closeLeaderboardModal() {
       document.getElementById("modal-leaderboard").classList.add("hidden");
-    }
-
-    function clearHistory() {
-      playSound("click");
-      document.getElementById("modal-clear-confirm").classList.remove("hidden");
-    }
-
-    function closeClearConfirmModal() {
-      document.getElementById("modal-clear-confirm").classList.add("hidden");
-    }
-
-    async function executeClearHistory() {
-      closeClearConfirmModal();
-      sharedHistory = [];
-      updateHistoryBadges();
-      openLeaderboardModal();
-      if (typeof cloudClearHistory === "function") {
-        await cloudClearHistory();
-      }
     }
 
     function openRulesModal() {
@@ -1471,89 +1522,6 @@
       setTeamCount(1);
       updateHistoryBadges();
     };
-  </script>
-
-  <!-- Sincronización en tiempo real entre múltiples computadores -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, collection, addDoc, onSnapshot, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-    async function initCloudSync() {
-      try {
-        if (typeof __firebase_config === "undefined") return;
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const appId = typeof __app_id !== "undefined" ? __app_id : "reto-financiero-itm";
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        // 1. Autenticación obligatoria antes de consultar
-        if (typeof __initial_auth_token !== "undefined" && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-          await signInAnonymously(auth);
-        }
-
-        const user = auth.currentUser;
-        if (!user) return;
-
-        // 2. Colección pública compartida entre todos los computadores
-        const resultsCol = collection(db, "artifacts", appId, "public", "data", "resultados_reto");
-
-        // 3. Escucha en tiempo real de los resultados de cualquier PC
-        onSnapshot(
-          resultsCol,
-          (snapshot) => {
-            const list = [];
-            snapshot.forEach((d) => {
-              list.push({ id: d.id, ...d.data() });
-            });
-            list.sort((a, b) => (b.score || 0) - (a.score || 0) || (a.totalTimeSec || 0) - (b.totalTimeSec || 0));
-            sharedHistory = list;
-            updateHistoryBadges();
-
-            const lbModal = document.getElementById("modal-leaderboard");
-            if (lbModal && !lbModal.classList.contains("hidden")) {
-              openLeaderboardModal();
-            }
-          },
-          (error) => {
-            console.error("Error al sincronizar resultados:", error);
-          }
-        );
-
-        // 4. Guardar nuevo resultado en la nube
-        cloudSaveTeam = async (entry) => {
-          if (!auth.currentUser) return;
-          try {
-            await addDoc(resultsCol, entry);
-          } catch (err) {
-            console.error("Error guardando resultado:", err);
-          }
-        };
-
-        // 5. Borrar historial compartido
-        cloudClearHistory = async () => {
-          if (!auth.currentUser) return;
-          try {
-            const snap = await getDocs(resultsCol);
-            const deletions = [];
-            snap.forEach((d) => {
-              deletions.push(deleteDoc(doc(db, "artifacts", appId, "public", "data", "resultados_reto", d.id)));
-            });
-            await Promise.all(deletions);
-          } catch (err) {
-            console.error("Error limpiando historial:", err);
-          }
-        };
-      } catch (e) {
-        console.error("Error iniciando almacenamiento compartido:", e);
-      }
-    }
-
-    initCloudSync();
   </script>
 </body>
 </html>
