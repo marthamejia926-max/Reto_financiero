@@ -1,0 +1,1559 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reto financiero: ¿Quién toma la mejor decisión?</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-deep: #120833;
+      --bg-mid: #271366;
+      --bg-light: #3b1d8f;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at 50% 25%, #3b1d8f 0%, #1d0d4f 50%, #0d0526 100%);
+      color: #ffffff;
+      min-height: 100vh;
+      overflow-x: hidden;
+      user-select: none;
+    }
+
+    .font-game {
+      font-family: 'Fredoka', sans-serif;
+    }
+
+    .space-canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .nebula {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(85px);
+      opacity: 0.38;
+      animation: driftNebula 22s infinite alternate ease-in-out;
+    }
+
+    @keyframes driftNebula {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(35px, -25px) scale(1.15); }
+    }
+
+    .star {
+      position: absolute;
+      background: white;
+      border-radius: 50%;
+      opacity: 0.7;
+      animation: twinkle var(--dur, 3s) infinite ease-in-out alternate;
+    }
+
+    .asteroid {
+      position: absolute;
+      opacity: 0.28;
+      animation: floatAsteroid var(--float-dur, 18s) infinite ease-in-out alternate;
+      filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.5));
+    }
+
+    @keyframes twinkle {
+      0% { transform: scale(0.7); opacity: 0.25; }
+      100% { transform: scale(1.25); opacity: 0.9; }
+    }
+
+    @keyframes floatAsteroid {
+      0% { transform: translateY(0px) rotate(0deg); }
+      100% { transform: translateY(-22px) rotate(14deg); }
+    }
+
+    .wordwall-tile {
+      position: relative;
+      border-radius: 16px;
+      border-bottom: 6px solid rgba(0, 0, 0, 0.35);
+      transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.16s ease, filter 0.16s ease;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.45), inset 0 2px 2px rgba(255, 255, 255, 0.35);
+      cursor: pointer;
+    }
+
+    .wordwall-tile:hover:not(:disabled) {
+      transform: translateY(-4px) scale(1.02);
+      filter: brightness(1.08);
+      box-shadow: 0 16px 30px -5px rgba(0, 0, 0, 0.55), inset 0 2px 4px rgba(255, 255, 255, 0.5);
+    }
+
+    .wordwall-tile:active:not(:disabled) {
+      transform: translateY(3px) scale(0.98);
+      border-bottom-width: 2px;
+    }
+
+    .tile-blue { background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%); }
+    .tile-indigo { background: linear-gradient(180deg, #4f46e5 0%, #3730a3 100%); }
+    .tile-purple { background: linear-gradient(180deg, #7c3aed 0%, #5b21b6 100%); }
+    .tile-amber { background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%); }
+    .tile-emerald { background: linear-gradient(180deg, #10b981 0%, #059669 100%); }
+
+    .tile-correct {
+      background: linear-gradient(180deg, #22c55e 0%, #15803d 100%) !important;
+      box-shadow: 0 0 35px rgba(34, 197, 94, 0.85), inset 0 2px 4px rgba(255, 255, 255, 0.6) !important;
+      transform: scale(1.03);
+    }
+    .tile-wrong {
+      background: linear-gradient(180deg, #ef4444 0%, #b91c1c 100%) !important;
+      box-shadow: 0 0 30px rgba(239, 68, 68, 0.8) !important;
+      animation: shake 0.45s cubic-bezier(.36,.07,.19,.97) both;
+    }
+
+    @keyframes shake {
+      10%, 90% { transform: translate3d(-2px, 0, 0); }
+      20%, 80% { transform: translate3d(4px, 0, 0); }
+      30%, 50%, 70% { transform: translate3d(-7px, 0, 0); }
+      40%, 60% { transform: translate3d(7px, 0, 0); }
+    }
+
+    .prompt-card {
+      background: rgba(255, 255, 255, 0.97);
+      color: #1e1b4b;
+      border-radius: 26px;
+      box-shadow:
+        0 0 0 8px rgba(167, 139, 250, 0.25),
+        0 0 0 16px rgba(139, 92, 246, 0.12),
+        0 20px 45px rgba(0, 0, 0, 0.5);
+    }
+
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.85) translateY(12px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .animate-pop {
+      animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @keyframes pulseUrgent {
+      0%, 100% { transform: scale(1); color: #f87171; }
+      50% { transform: scale(1.12); color: #ef4444; }
+    }
+
+    .timer-urgent {
+      animation: pulseUrgent 0.8s infinite;
+    }
+
+    .confetti-piece {
+      position: fixed;
+      width: 10px;
+      height: 16px;
+      top: -20px;
+      z-index: 60;
+      animation: confettiFall linear forwards;
+    }
+
+    @keyframes confettiFall {
+      to { transform: translateY(110vh) rotate(720deg); }
+    }
+  </style>
+</head>
+<body class="flex flex-col justify-between">
+
+  <div id="space-bg" class="space-canvas">
+    <div class="nebula w-96 h-96 bg-fuchsia-600 -top-16 -left-16"></div>
+    <div class="nebula w-[28rem] h-[28rem] bg-indigo-500 bottom-0 right-0" style="animation-delay: -7s;"></div>
+    <div class="nebula w-72 h-72 bg-cyan-500 top-1/3 left-1/2" style="animation-delay: -12s;"></div>
+  </div>
+
+  <main id="screen-setup" class="relative z-10 max-w-4xl w-full mx-auto px-4 py-5 sm:py-8 flex-1 flex flex-col justify-center">
+    <div class="bg-indigo-950/85 backdrop-blur-md border border-indigo-400/30 rounded-3xl p-5 sm:p-8 shadow-2xl animate-pop">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-5">
+        <button type="button" onclick="openRulesModal()" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-indigo-900/90 hover:bg-indigo-800 border border-indigo-400/30 text-indigo-100 text-xs sm:text-sm font-bold transition">
+          <span>📜</span> Ver Reglas y Objetivo
+        </button>
+        <button type="button" onclick="openLeaderboardModal()" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-amber-400/20 hover:bg-amber-400/30 border border-amber-400/50 text-amber-300 text-xs sm:text-sm font-bold transition">
+          <span>🏆</span> Tabla de Resultados / Historial (<span id="setup-history-count">0</span>)
+        </button>
+      </div>
+
+      <div class="text-center mb-6">
+        <span class="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-indigo-500/25 border border-indigo-400/40 text-indigo-200 text-xs font-bold tracking-wide uppercase mb-2">
+          <span>🚀</span> Ingeniería Económica · Reto Interactivo
+        </span>
+        <h1 class="font-game text-3xl sm:text-5xl font-bold text-white drop-shadow-md leading-tight">
+          Reto financiero: <span class="text-amber-400">¿Quién toma la mejor decisión?</span>
+        </h1>
+        <p class="text-indigo-200 mt-2.5 text-sm sm:text-base max-w-2xl mx-auto">
+          Registra el nombre de tu equipo o empresa, responde los 8 retos financieros (100 pts c/u) y compara tu puntaje final en el ranking.
+        </p>
+        <div class="mt-3.5 inline-flex flex-wrap items-center justify-center gap-1.5 px-4 py-1.5 rounded-2xl bg-indigo-900/80 border border-amber-400/35 text-xs sm:text-sm text-amber-200 font-semibold shadow-sm">
+          <span>✨</span>
+          <span>Trabajo creado por: <strong class="text-white">Martha Yulie Mejia Gaviria, Yuliana Salazar y Duberney Sierra</strong></span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-indigo-900/45 p-5 rounded-2xl border border-indigo-400/25 mb-6">
+        <div>
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <label class="font-bold text-sm text-indigo-100 flex items-center gap-1.5">
+              <span>🏢</span> Cantidad de equipos (1 a 10):
+            </label>
+            <div class="flex flex-wrap gap-1">
+              <button type="button" onclick="setTeamCount(1)" id="btn-count-1" class="px-2 py-1 rounded-lg text-xs font-bold bg-amber-400 text-indigo-950 transition" title="1 Equipo / Individual">1</button>
+              <button type="button" onclick="setTeamCount(2)" id="btn-count-2" class="px-2 py-1 rounded-lg text-xs font-bold bg-indigo-800 text-indigo-200 hover:bg-indigo-700 transition">2</button>
+              <button type="button" onclick="setTeamCount(3)" id="btn-count-3" class="px-2 py-1 rounded-lg text-xs font-bold bg-indigo-800 text-indigo-200 hover:bg-indigo-700 transition">3</button>
+              <button type="button" onclick="setTeamCount(4)" id="btn-count-4" class="px-2 py-1 rounded-lg text-xs font-bold bg-indigo-800 text-indigo-200 hover:bg-indigo-700 transition">4</button>
+              <button type="button" onclick="setTeamCount(5)" id="btn-count-5" class="px-2 py-1 rounded-lg text-xs font-bold bg-indigo-800 text-indigo-200 hover:bg-indigo-700 transition">5</button>
+              <button type="button" onclick="setTeamCount(6)" id="btn-count-6" class="px-2 py-1 rounded-lg text-xs font-bold bg-indigo-800 text-indigo-200 hover:bg-indigo-700 transition">6</button>
+              <button type="button" onclick="setTeamCount(7)" id="btn-count-7" class="px-2 py-1 rounded-lg text-xs font-bold bg-indigo-800 text-indigo-200 hover:bg-indigo-700 transition">7</button>
+              <button type="button" onclick="setTeamCount(8)" id="btn-count-8" class="px-2 py-1 rounded-lg text-xs font-bold bg-indigo-800 text-indigo-200 hover:bg-indigo-700 transition">8</button>
+              <button type="button" onclick="setTeamCount(9)" id="btn-count-9" class="px-2 py-1 rounded-lg text-xs font-bold bg-indigo-800 text-indigo-200 hover:bg-indigo-700 transition">9</button>
+              <button type="button" onclick="setTeamCount(10)" id="btn-count-10" class="px-2 py-1 rounded-lg text-xs font-bold bg-indigo-800 text-indigo-200 hover:bg-indigo-700 transition">10</button>
+            </div>
+          </div>
+
+          <p id="team-mode-hint" class="text-xs text-emerald-300 bg-emerald-500/15 border border-emerald-400/30 rounded-xl px-3 py-2 mb-3 font-medium">
+            👤 <strong>Modo Individual / 1 Equipo:</strong> Todas las 8 preguntas suman directamente a tu equipo (hasta 800 pts).
+          </p>
+
+          <div id="team-inputs" class="space-y-2 max-h-56 overflow-y-auto pr-1"></div>
+        </div>
+
+        <div class="flex flex-col justify-between space-y-4">
+          <div>
+            <label class="font-bold text-sm text-indigo-100 flex items-center gap-2 mb-2.5">
+              <span>⏳</span> Tiempo por pregunta
+            </label>
+            <div class="grid grid-cols-4 gap-2">
+              <button type="button" onclick="setTimeLimit(45)" data-time="45" class="time-btn py-2.5 rounded-xl font-bold text-sm bg-indigo-800 text-indigo-200 hover:bg-indigo-700 transition">45s</button>
+              <button type="button" onclick="setTimeLimit(60)" data-time="60" class="time-btn py-2.5 rounded-xl font-bold text-sm bg-amber-400 text-indigo-950 shadow-md transition">60s</button>
+              <button type="button" onclick="setTimeLimit(75)" data-time="75" class="time-btn py-2.5 rounded-xl font-bold text-sm bg-indigo-800 text-indigo-200 hover:bg-indigo-700 transition">75s</button>
+              <button type="button" onclick="setTimeLimit(90)" data-time="90" class="time-btn py-2.5 rounded-xl font-bold text-sm bg-indigo-800 text-indigo-200 hover:bg-indigo-700 transition">90s</button>
+            </div>
+          </div>
+
+          <div>
+            <label class="font-bold text-sm text-indigo-100 flex items-center gap-2 mb-2.5">
+              <span>🎮</span> Estilo de tablero
+            </label>
+            <div class="grid grid-cols-1 gap-2">
+              <button type="button" onclick="setBoardMode('options')" id="mode-options" class="p-3 rounded-xl border-2 border-amber-400 bg-indigo-800/80 text-left transition">
+                <div class="font-bold text-sm text-amber-300">Modo Reto por Pregunta (Recomendado)</div>
+                <div class="text-xs text-indigo-200">Muestra las 3 opciones (A, B, C) como fichas grandes para cada caso financiero.</div>
+              </button>
+              <button type="button" onclick="setBoardMode('wordwall')" id="mode-wordwall" class="p-3 rounded-xl border-2 border-indigo-700 bg-indigo-900/50 text-left hover:border-indigo-500 transition">
+                <div class="font-bold text-sm text-white">Modo Galaxia Wordwall (Todas las respuestas)</div>
+                <div class="text-xs text-indigo-300">Las 8 respuestas están en pantalla como en Wordwall y van desapareciendo al acertar.</div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center">
+        <button type="button" onclick="startGame()" class="wordwall-tile tile-amber px-10 py-4 text-indigo-950 font-game text-xl sm:text-2xl font-bold tracking-wide inline-flex items-center gap-3">
+          <span>▶</span> ¡INICIAR RETO FINANCIERO!
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <section id="screen-game" class="hidden relative z-10 flex-1 flex flex-col justify-between min-h-screen px-3 sm:px-6 py-3 sm:py-4">
+    <header class="max-w-6xl w-full mx-auto space-y-2">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-3 bg-indigo-950/85 backdrop-blur-md border border-indigo-400/30 px-4 py-2 rounded-2xl shadow-lg">
+          <div class="flex items-center gap-1.5">
+            <span class="text-lg">⏱️</span>
+            <span id="hud-timer" class="font-game text-2xl sm:text-3xl font-bold text-white tabular-nums">1:00</span>
+          </div>
+          <div class="h-6 w-px bg-indigo-500/40"></div>
+          <div class="text-xs sm:text-sm font-bold text-indigo-200">
+            Reto <span id="hud-progress" class="text-amber-300">1 / 8</span>
+          </div>
+        </div>
+
+        <div class="order-3 md:order-2 w-full md:w-auto text-center">
+          <span class="inline-block font-game text-lg sm:text-2xl font-bold text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+            Toca la ficha que coincida
+          </span>
+        </div>
+
+        <div id="hud-scoreboard" class="order-2 md:order-3 flex flex-wrap items-center gap-1.5 sm:gap-2"></div>
+      </div>
+
+      <div class="w-full h-2 bg-indigo-950/90 rounded-full overflow-hidden border border-indigo-500/25">
+        <div id="timer-progress-bar" class="h-full bg-gradient-to-r from-emerald-400 via-amber-400 to-rose-500 transition-all duration-1000 linear" style="width: 100%;"></div>
+      </div>
+    </header>
+
+    <div class="max-w-4xl w-full mx-auto my-3 sm:my-4 flex flex-col items-center">
+      <div class="mb-2.5 flex items-center gap-2 bg-indigo-950/90 border border-amber-400/50 px-4 py-1.5 rounded-full shadow-lg">
+        <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>
+        <span id="turn-label-prefix" class="text-xs sm:text-sm text-indigo-200">Participando:</span>
+        <span id="active-team-badge" class="font-bold text-sm sm:text-base text-amber-300">Equipo 1</span>
+        <span id="turn-switch-hint" class="hidden text-[11px] text-indigo-400 sm:inline">(clic en otro equipo arriba para cambiar turno)</span>
+      </div>
+
+      <div id="question-box" class="prompt-card w-full p-5 sm:p-7 text-center relative transition-all duration-300">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-indigo-100 text-indigo-800 font-bold text-xs sm:text-sm mb-3">
+          <span id="q-icon">💰</span>
+          <span id="q-category">Pregunta 1 · Presupuesto</span>
+        </div>
+
+        <h2 id="q-text" class="text-lg sm:text-2xl font-extrabold text-slate-900 leading-snug max-w-3xl mx-auto">
+          Cargando pregunta...
+        </h2>
+
+        <div id="feedback-overlay" class="hidden absolute inset-0 rounded-[26px] flex flex-col items-center justify-center bg-white/95 backdrop-blur-sm z-20 p-4">
+          <div id="feedback-icon" class="text-6xl sm:text-7xl mb-1 animate-bounce">✅</div>
+          <div id="feedback-title" class="font-game text-2xl sm:text-4xl font-bold text-emerald-600">¡Correcto! +100 pts</div>
+          <div id="feedback-subtitle" class="text-sm sm:text-base font-semibold text-slate-600 mt-1"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="max-w-5xl w-full mx-auto mb-2">
+      <div id="tiles-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4"></div>
+    </div>
+
+    <footer class="max-w-6xl w-full mx-auto flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-indigo-400/20 text-xs sm:text-sm text-indigo-200">
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="toggleSound()" id="btn-sound" class="p-2.5 rounded-xl bg-indigo-900/80 hover:bg-indigo-800 border border-indigo-500/30 transition" title="Silenciar / Activar sonido">
+          🔊
+        </button>
+        <button type="button" onclick="confirmHome()" class="px-3 py-2 rounded-xl bg-indigo-900/80 hover:bg-indigo-800 border border-indigo-500/30 font-semibold transition">
+          ⚙️ Inicio / Equipos
+        </button>
+      </div>
+
+      <div id="rebound-banner" class="hidden px-3 py-1.5 rounded-xl bg-rose-500/20 border border-rose-400/50 text-rose-200 font-bold">
+        ❌ Respuesta incorrecta. Revisa la justificación para pasar al siguiente reto.
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="openExplanationModal(lastAttemptCorrect)" id="btn-show-procedure" class="hidden px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-indigo-950 font-bold shadow-lg transition">
+          📘 Ver Justificación y Continuar →
+        </button>
+        <button type="button" onclick="skipOrReveal()" id="btn-reveal" class="px-3 py-2 rounded-xl bg-indigo-900/80 hover:bg-indigo-800 border border-indigo-500/30 font-semibold transition">
+          👁️ Mostrar solución
+        </button>
+      </div>
+    </footer>
+  </section>
+
+  <div id="modal-procedure" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+    <div class="bg-slate-900 border-2 border-indigo-400/50 rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl animate-pop text-white">
+      <div class="flex items-center justify-between mb-4">
+        <span id="modal-status-badge" class="px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">
+          Sustentación del reto
+        </span>
+        <span id="modal-points-earned" class="font-game text-lg font-bold text-amber-400">+100 pts</span>
+      </div>
+
+      <div id="modal-wrong-choice-box" class="hidden mb-3 px-4 py-2.5 rounded-xl bg-rose-500/15 border border-rose-400/40 text-rose-200 text-xs sm:text-sm font-semibold">
+        ❌ Tu elección: <span id="modal-user-choice" class="font-bold text-white"></span>
+      </div>
+
+      <h3 class="font-game text-xl sm:text-2xl font-bold text-white mb-2">
+        Respuesta correcta: <span id="modal-correct-answer" class="text-emerald-400"></span>
+      </h3>
+
+      <div class="bg-indigo-950/90 border border-indigo-500/40 rounded-2xl p-4 sm:p-5 my-4">
+        <div class="text-xs font-bold uppercase tracking-wider text-amber-300 mb-2 flex items-center gap-1.5">
+          <span>🧮</span> Justificación y Procedimiento:
+        </div>
+        <p id="modal-explanation-text" class="text-sm sm:text-base text-indigo-100 leading-relaxed whitespace-pre-line font-medium"></p>
+      </div>
+
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 mt-6">
+        <span id="modal-footer-note" class="text-xs text-indigo-300 text-center sm:text-left">
+          💡 Analiza la justificación antes de pasar a la siguiente pregunta.
+        </span>
+        <button type="button" onclick="nextQuestion()" id="btn-next-question" class="wordwall-tile tile-amber w-full sm:w-auto px-6 py-3 text-indigo-950 font-game text-lg font-bold">
+          Siguiente Reto →
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <section id="screen-results" class="hidden relative z-10 max-w-4xl w-full mx-auto px-4 py-6 sm:py-8 flex-1 flex flex-col justify-center">
+    <div class="bg-indigo-950/90 backdrop-blur-md border border-amber-400/40 rounded-3xl p-6 sm:p-9 shadow-2xl text-center animate-pop">
+      <div class="text-5xl sm:text-6xl mb-2">🏆</div>
+      <span class="px-4 py-1 rounded-full bg-amber-400/20 text-amber-300 text-xs font-bold uppercase tracking-widest">
+        Resultado Final de la Partida
+      </span>
+      <h2 id="winner-headline" class="font-game text-3xl sm:text-5xl font-bold text-white mt-3">
+        ¡Excelente trabajo, Equipo 1!
+      </h2>
+      <p id="winner-substats" class="text-indigo-200 mt-2 text-sm sm:text-base font-medium">
+        Puntaje total: 800 / 800 pts · 100% de acierto
+      </p>
+
+      <div id="final-leaderboard" class="max-w-2xl mx-auto my-6 space-y-3 max-h-80 overflow-y-auto pr-1"></div>
+
+      <div class="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mt-6">
+        <button type="button" onclick="goToSetup()" class="wordwall-tile tile-amber px-6 sm:px-8 py-3.5 text-indigo-950 font-game text-lg sm:text-xl font-bold">
+          ✍️ Registrar otro equipo / Jugar de nuevo
+        </button>
+        <button type="button" onclick="openLeaderboardModal()" class="wordwall-tile tile-emerald px-6 py-3.5 text-white font-game text-lg font-bold">
+          📊 Ver Tabla Histórica (<span id="results-history-count">0</span>)
+        </button>
+        <button type="button" onclick="restartSameSettings()" class="wordwall-tile tile-indigo px-5 py-3.5 text-white font-game text-base sm:text-lg font-bold">
+          🔄 Repetir mismos equipos
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <div id="modal-rules" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+    <div class="bg-slate-900 border-2 border-indigo-400/50 rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl animate-pop text-white max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-4">
+        <span class="px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-indigo-500/25 text-indigo-200 border border-indigo-400/40">
+          Ficha Pedagógica
+        </span>
+        <button type="button" onclick="closeRulesModal()" class="text-indigo-300 hover:text-white text-xl font-bold px-2">✕</button>
+      </div>
+
+      <h3 class="font-game text-2xl font-bold text-amber-400 mb-3">
+        Reto financiero: ¿Quién toma la mejor decisión?
+      </h3>
+
+      <div class="space-y-3.5 text-sm text-indigo-100 leading-relaxed">
+        <div class="bg-indigo-950/80 border border-indigo-500/30 rounded-2xl p-4">
+          <strong class="text-amber-300 block mb-1">🎯 Objetivo de la actividad:</strong>
+          Aplicar los conocimientos de Ingeniería Económica mediante un juego virtual que permita desarrollar habilidades para analizar situaciones financieras y tomar decisiones relacionadas con el manejo del dinero y la rentabilidad de un negocio.
+        </div>
+        <div class="bg-indigo-950/80 border border-indigo-500/30 rounded-2xl p-4">
+          <strong class="text-emerald-300 block mb-1">📋 Reglas del juego:</strong>
+          <ul class="list-disc list-inside space-y-1 text-indigo-200">
+            <li>Registra el nombre de tu equipo (puedes jugar de forma individual con 1 equipo o competir entre hasta <strong>10 equipos</strong>).</li>
+            <li>Se lee cada uno de los 8 retos y se dispone de <strong>45 a 90 segundos</strong> para responder.</li>
+            <li>Cada respuesta correcta otorga <strong>100 puntos</strong> (máximo 800 puntos).</li>
+            <li>Si respondes de forma incorrecta, no se puede repetir la misma pregunta: se muestra la justificación del error y se avanza automáticamente al siguiente reto.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="mt-6 text-right">
+        <button type="button" onclick="closeRulesModal()" class="wordwall-tile tile-amber px-6 py-2.5 text-indigo-950 font-game text-base font-bold">
+          ¡Entendido!
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-leaderboard" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+    <div class="bg-slate-900 border-2 border-amber-400/50 rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl animate-pop text-white max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="font-game text-2xl sm:text-3xl font-bold text-amber-400 flex items-center gap-2">
+            <span>🏆</span> Tabla de Resultados
+          </h3>
+          <p class="text-xs sm:text-sm text-indigo-200">Registro guardado de todos los equipos y participantes que han completado el reto.</p>
+        </div>
+        <button type="button" onclick="closeLeaderboardModal()" class="text-indigo-300 hover:text-white text-2xl font-bold px-2">✕</button>
+      </div>
+
+      <div id="history-list-container" class="flex-1 overflow-y-auto space-y-2.5 my-2 pr-1"></div>
+
+      <div class="flex flex-wrap items-center justify-between gap-3 pt-4 mt-3 border-t border-indigo-500/30">
+        <button type="button" onclick="clearHistory()" class="px-3.5 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-400/40 text-rose-200 text-xs font-bold transition">
+          🗑️ Borrar historial
+        </button>
+        <button type="button" onclick="closeLeaderboardModal()" class="wordwall-tile tile-amber px-6 py-2.5 text-indigo-950 font-game text-base font-bold">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de confirmación para borrar historial -->
+  <div id="modal-clear-confirm" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+    <div class="bg-indigo-950 border border-rose-400/50 rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl">
+      <h4 class="font-game text-xl font-bold text-white mb-2">¿Borrar todo el historial compartido?</h4>
+      <p class="text-sm text-indigo-200 mb-5">Se eliminarán todos los puntajes registrados en la nube para todos los participantes.</p>
+      <div class="flex gap-3 justify-center">
+        <button type="button" onclick="closeClearConfirmModal()" class="px-4 py-2 rounded-xl bg-indigo-800 hover:bg-indigo-700 text-white font-semibold">Cancelar</button>
+        <button type="button" onclick="executeClearHistory()" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold">Sí, borrar todo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de confirmación ligero -->
+  <div id="modal-confirm" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+    <div class="bg-indigo-950 border border-indigo-400/40 rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl">
+      <h4 class="font-game text-xl font-bold text-white mb-2">¿Volver al registro de equipos?</h4>
+      <p class="text-sm text-indigo-200 mb-5">Se reiniciará el progreso de la partida actual.</p>
+      <div class="flex gap-3 justify-center">
+        <button type="button" onclick="closeConfirmModal()" class="px-4 py-2 rounded-xl bg-indigo-800 hover:bg-indigo-700 text-white font-semibold">Cancelar</button>
+        <button type="button" onclick="goToSetup()" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold">Sí, volver</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const QUESTIONS = [
+      {
+        id: 1,
+        category: "Pregunta 1 · Presupuesto",
+        icon: "💵",
+        question: "Una empresa tiene $10.000.000. Compra materiales por $3.000.000, paga salarios por $2.000.000 y servicios por $1.000.000. ¿Cuánto dinero le queda?",
+        options: [
+          { letter: "A", text: "$3.000.000" },
+          { letter: "B", text: "$4.000.000" },
+          { letter: "C", text: "$5.000.000" }
+        ],
+        correctLetter: "B",
+        shortAnswer: "$4.000.000 disponibles",
+        procedure: "$10.000.000 − $3.000.000 − $2.000.000 − $1.000.000 = $4.000.000.\n\nA la empresa le quedan $4.000.000 disponibles."
+      },
+      {
+        id: 2,
+        category: "Pregunta 2 · Interés simple",
+        icon: "🏦",
+        question: "Una empresa solicita un préstamo de $2.000.000 a una tasa de interés simple del 12% anual durante 6 meses. ¿Cuánto pagará de intereses?",
+        options: [
+          { letter: "A", text: "$120.000" },
+          { letter: "B", text: "$240.000" },
+          { letter: "C", text: "$360.000" }
+        ],
+        correctLetter: "A",
+        shortAnswer: "$120.000 de intereses",
+        procedure: "Fórmula: I = C × i × t\n• Capital: $2.000.000\n• Tasa: 12% = 0,12\n• Tiempo: 6 meses = 0,5 años\n\nI = 2.000.000 × 0,12 × 0,5 = $120.000.\nEl interés que debe pagar es de $120.000."
+      },
+      {
+        id: 3,
+        category: "Pregunta 3 · Capitalización",
+        icon: "📈",
+        question: "Se invierten $1.000.000 a una tasa del 10% efectivo anual, con capitalización anual. ¿Cuánto dinero habrá al finalizar dos años?",
+        options: [
+          { letter: "A", text: "$1.200.000" },
+          { letter: "B", text: "$1.210.000" },
+          { letter: "C", text: "$1.100.000" }
+        ],
+        correctLetter: "B",
+        shortAnswer: "$1.210.000 al finalizar 2 años",
+        procedure: "Fórmula del valor futuro: VF = C(1 + i)ⁿ\n\nVF = 1.000.000(1 + 0,10)²\nVF = 1.000.000(1,21) = $1.210.000.\n\nEl valor final será de $1.210.000."
+      },
+      {
+        id: 4,
+        category: "Pregunta 4 · Valor presente",
+        icon: "⏳",
+        question: "Una empresa recibirá $1.100.000 dentro de un año. Si la tasa de descuento es del 10% anual, ¿cuál es el valor presente de ese dinero?",
+        options: [
+          { letter: "A", text: "$1.000.000" },
+          { letter: "B", text: "$990.000" },
+          { letter: "C", text: "$1.100.000" }
+        ],
+        correctLetter: "A",
+        shortAnswer: "$1.000.000 valor presente",
+        procedure: "Fórmula del valor presente: VP = VF / (1 + i)ⁿ\n\nVP = 1.100.000 / 1,10 = $1.000.000.\n\nEl valor presente es de $1.000.000."
+      },
+      {
+        id: 5,
+        category: "Pregunta 5 · Flujo de caja",
+        icon: "💸",
+        question: "Durante un mes, un negocio recibe $8.000.000 y tiene egresos de $6.500.000. ¿Cuál es su flujo neto de caja?",
+        options: [
+          { letter: "A", text: "$1.500.000 negativo" },
+          { letter: "B", text: "$14.500.000 positivo" },
+          { letter: "C", text: "$1.500.000 positivo" }
+        ],
+        correctLetter: "C",
+        shortAnswer: "$1.500.000 positivo",
+        procedure: "Flujo neto de caja = ingresos − egresos\n\n$8.000.000 − $6.500.000 = $1.500.000.\n\nEl negocio tiene un flujo de caja positivo de $1.500.000, porque sus ingresos superan sus gastos."
+      },
+      {
+        id: 6,
+        category: "Pregunta 6 · Valor presente neto (VPN)",
+        icon: "🧮",
+        question: "Un proyecto cuesta $1.000.000 y genera ingresos de $600.000 al final de cada uno de los próximos dos años. Si la tasa de descuento es del 10% anual, ¿cuál es aproximadamente su VPN?",
+        options: [
+          { letter: "A", text: "−$41.322" },
+          { letter: "B", text: "$41.322" },
+          { letter: "C", text: "$200.000" }
+        ],
+        correctLetter: "B",
+        shortAnswer: "VPN ≈ $41.322",
+        procedure: "VPN = −1.000.000 + (600.000 / 1,10) + (600.000 / 1,10²)\nVPN ≈ $41.322.\n\nComo el VPN es positivo, el proyecto genera un valor adicional aproximado de $41.322 después de recuperar la inversión y considerar la tasa de descuento establecida."
+      },
+      {
+        id: 7,
+        category: "Pregunta 7 · Tasa interna de retorno (TIR)",
+        icon: "🎯",
+        question: "¿Qué representa la tasa interna de retorno de un proyecto de inversión?",
+        options: [
+          { letter: "A", text: "El total de los gastos del negocio." },
+          { letter: "B", text: "La tasa de rentabilidad que hace que el VPN sea igual a cero." },
+          { letter: "C", text: "El dinero disponible en la caja." }
+        ],
+        correctLetter: "B",
+        shortAnswer: "Tasa donde VPN = 0",
+        procedure: "La TIR es la tasa de interés que hace que el valor presente neto de los ingresos y egresos de un proyecto sea igual a cero.\n\nSe utiliza para evaluar la rentabilidad de una inversión y compararla con la rentabilidad mínima que se espera obtener."
+      },
+      {
+        id: 8,
+        category: "Pregunta 8 · Decisión de inversión",
+        icon: "⚖️",
+        question: "Dos proyectos requieren una inversión inicial de $5.000.000. El proyecto A tiene un VPN de $800.000 y el proyecto B tiene un VPN de −$200.000. Si solo puedes elegir uno, ¿cuál conviene más según el VPN?",
+        options: [
+          { letter: "A", text: "Proyecto A." },
+          { letter: "B", text: "Proyecto B." },
+          { letter: "C", text: "Ambos son igual de convenientes." }
+        ],
+        correctLetter: "A",
+        shortAnswer: "Proyecto A (VPN +$800.000)",
+        procedure: "El proyecto A tiene un VPN positivo de $800.000, mientras que el proyecto B tiene un VPN negativo de −$200.000.\n\nPor lo tanto, bajo las condiciones planteadas, el proyecto A es la mejor alternativa porque genera valor económico."
+      }
+    ];
+
+    let sharedHistory = [];
+    let cloudSaveTeam = null;
+    let cloudClearHistory = null;
+
+    let lastAttemptCorrect = true;
+    let lastSelectedText = "";
+
+    let state = {
+      teamCount: 1,
+      teams: [
+        { id: 0, name: "Equipo 1", score: 0, correctCount: 0, totalTimeSec: 0 }
+      ],
+      timeLimit: 60,
+      boardMode: "options",
+      currentQIndex: 0,
+      activeTeamIndex: 0,
+      timeLeft: 60,
+      questionStartTime: 0,
+      timerInterval: null,
+      questionSolved: false,
+      wrongAttempts: new Set(),
+      solvedWordwallIds: new Set(),
+      soundEnabled: true
+    };
+
+    const TEAM_COLORS = [
+      { badge: "bg-sky-500", text: "text-sky-300" },
+      { badge: "bg-amber-500", text: "text-amber-300" },
+      { badge: "bg-emerald-500", text: "text-emerald-300" },
+      { badge: "bg-fuchsia-500", text: "text-fuchsia-300" },
+      { badge: "bg-rose-500", text: "text-rose-300" },
+      { badge: "bg-cyan-400", text: "text-cyan-300" },
+      { badge: "bg-violet-500", text: "text-violet-300" },
+      { badge: "bg-orange-500", text: "text-orange-300" },
+      { badge: "bg-lime-500", text: "text-lime-300" },
+      { badge: "bg-teal-400", text: "text-teal-300" }
+    ];
+
+    let audioCtx = null;
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) audioCtx = new AudioContextClass();
+      }
+      if (audioCtx && audioCtx.state === "suspended") {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function playTone(freq, type, startTime, duration, volume = 0.14) {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, startTime);
+      gain.gain.setValueAtTime(volume, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(startTime);
+      osc.stop(startTime + duration);
+    }
+
+    function playSound(type) {
+      if (!state.soundEnabled) return;
+      try {
+        const ctx = getAudioContext();
+        if (!ctx) return;
+        const now = ctx.currentTime;
+
+        if (type === "click") {
+          playTone(520, "sine", now, 0.08, 0.1);
+        } else if (type === "correct") {
+          playTone(523.25, "triangle", now, 0.14, 0.16);
+          playTone(659.25, "triangle", now + 0.09, 0.14, 0.16);
+          playTone(783.99, "triangle", now + 0.18, 0.16, 0.16);
+          playTone(1046.50, "triangle", now + 0.27, 0.3, 0.18);
+        } else if (type === "wrong") {
+          playTone(190, "sawtooth", now, 0.18, 0.14);
+          playTone(145, "sawtooth", now + 0.14, 0.28, 0.14);
+        } else if (type === "win") {
+          const notes = [523.25, 659.25, 783.99, 1046.50, 783.99, 1046.50];
+          notes.forEach((f, i) => playTone(f, "triangle", now + i * 0.12, 0.22, 0.16));
+        }
+      } catch (e) {}
+    }
+
+    function toggleSound() {
+      state.soundEnabled = !state.soundEnabled;
+      document.getElementById("btn-sound").textContent = state.soundEnabled ? "🔊" : "🔇";
+    }
+
+    function initSpaceBackground() {
+      const container = document.getElementById("space-bg");
+      for (let i = 0; i < 65; i++) {
+        const star = document.createElement("div");
+        star.className = "star";
+        const size = Math.random() * 3 + 1.5;
+        star.style.width = `${size}px`;
+        star.style.height = `${size}px`;
+        star.style.left = `${Math.random() * 100}%`;
+        star.style.top = `${Math.random() * 100}%`;
+        star.style.setProperty("--dur", `${(Math.random() * 2.5 + 1.5).toFixed(1)}s`);
+        container.appendChild(star);
+      }
+
+      const asteroidPositions = [
+        { left: "4%", top: "14%", size: 46 },
+        { left: "88%", top: "16%", size: 54 },
+        { left: "12%", top: "48%", size: 38 },
+        { left: "85%", top: "52%", size: 42 },
+        { left: "26%", top: "22%", size: 28 },
+        { left: "72%", top: "24%", size: 32 }
+      ];
+
+      asteroidPositions.forEach((pos, idx) => {
+        const ast = document.createElement("div");
+        ast.className = "asteroid";
+        ast.style.left = pos.left;
+        ast.style.top = pos.top;
+        ast.style.setProperty("--float-dur", `${12 + idx * 3}s`);
+        ast.innerHTML = `
+          <svg width="${pos.size}" height="${pos.size}" viewBox="0 0 64 64" fill="none">
+            <path d="M18 10L42 8L56 24L52 46L34 56L14 50L8 30L18 10Z" fill="#7c6ba8" stroke="#a798d1" stroke-width="2"/>
+            <circle cx="26" cy="24" r="5" fill="#594a82"/>
+            <circle cx="40" cy="36" r="7" fill="#594a82"/>
+            <circle cx="22" cy="40" r="3.5" fill="#594a82"/>
+          </svg>
+        `;
+        container.appendChild(ast);
+      });
+    }
+
+    function setTeamCount(count) {
+      state.teamCount = count;
+      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].forEach(n => {
+        const btn = document.getElementById(`btn-count-${n}`);
+        if (n === count) {
+          btn.className = "px-2 py-1 rounded-lg text-xs font-bold bg-amber-400 text-indigo-950 transition";
+        } else {
+          btn.className = "px-2 py-1 rounded-lg text-xs font-bold bg-indigo-800 text-indigo-200 hover:bg-indigo-700 transition";
+        }
+      });
+
+      const hint = document.getElementById("team-mode-hint");
+      if (count === 1) {
+        hint.innerHTML = "👤 <strong>Modo Individual / 1 Equipo:</strong> Todas las 8 preguntas suman directamente a tu equipo (hasta 800 pts).";
+        hint.className = "text-xs text-emerald-300 bg-emerald-500/15 border border-emerald-400/30 rounded-xl px-3 py-2 mb-3 font-medium";
+      } else {
+        hint.innerHTML = `👥 <strong>Modo Competencia (${count} Equipos):</strong> Los turnos alternan entre los ${count} equipos registrados.`;
+        hint.className = "text-xs text-amber-200 bg-amber-500/15 border border-amber-400/30 rounded-xl px-3 py-2 mb-3 font-medium";
+      }
+
+      renderTeamInputs();
+    }
+
+    function renderTeamInputs() {
+      const container = document.getElementById("team-inputs");
+      const currentValues = Array.from(container.querySelectorAll("input")).map(inp => inp.value);
+      container.innerHTML = "";
+
+      for (let i = 0; i < state.teamCount; i++) {
+        const defaultName = currentValues[i] || (state.teamCount === 1 ? "" : `Equipo ${i + 1}`);
+        const placeholderText = state.teamCount === 1
+          ? "Escribe el nombre de tu equipo o empresa..."
+          : `Nombre del Equipo ${i + 1}`;
+        const colorDot = TEAM_COLORS[i % TEAM_COLORS.length].badge;
+
+        const row = document.createElement("div");
+        row.className = "flex items-center gap-2.5 bg-indigo-950/80 border border-indigo-400/40 focus-within:border-amber-400 rounded-xl px-3 py-2.5 transition";
+        row.innerHTML = `
+          <span class="w-3.5 h-3.5 rounded-full ${colorDot} shrink-0"></span>
+          <input type="text" maxlength="28" value="${defaultName}" placeholder="${placeholderText}"
+            class="bg-transparent text-white text-sm font-semibold w-full focus:outline-none placeholder-indigo-400" />
+        `;
+        container.appendChild(row);
+      }
+    }
+
+    function setTimeLimit(seconds) {
+      state.timeLimit = seconds;
+      document.querySelectorAll(".time-btn").forEach(btn => {
+        const t = Number(btn.dataset.time);
+        if (t === seconds) {
+          btn.className = "time-btn py-2.5 rounded-xl font-bold text-sm bg-amber-400 text-indigo-950 shadow-md transition";
+        } else {
+          btn.className = "time-btn py-2.5 rounded-xl font-bold text-sm bg-indigo-800 text-indigo-200 hover:bg-indigo-700 transition";
+        }
+      });
+    }
+
+    function setBoardMode(mode) {
+      state.boardMode = mode;
+      const optBtn = document.getElementById("mode-options");
+      const wwBtn = document.getElementById("mode-wordwall");
+      if (mode === "options") {
+        optBtn.className = "p-3 rounded-xl border-2 border-amber-400 bg-indigo-800/80 text-left transition";
+        wwBtn.className = "p-3 rounded-xl border-2 border-indigo-700 bg-indigo-900/50 text-left hover:border-indigo-500 transition";
+      } else {
+        wwBtn.className = "p-3 rounded-xl border-2 border-amber-400 bg-indigo-800/80 text-left transition";
+        optBtn.className = "p-3 rounded-xl border-2 border-indigo-700 bg-indigo-900/50 text-left hover:border-indigo-500 transition";
+      }
+    }
+
+    function startGame() {
+      playSound("click");
+      const inputs = document.querySelectorAll("#team-inputs input");
+      state.teams = Array.from(inputs).map((inp, idx) => ({
+        id: idx,
+        name: inp.value.trim() || `Equipo ${idx + 1}`,
+        score: 0,
+        correctCount: 0,
+        totalTimeSec: 0
+      }));
+
+      state.currentQIndex = 0;
+      state.activeTeamIndex = 0;
+      state.solvedWordwallIds = new Set();
+
+      document.getElementById("screen-setup").classList.add("hidden");
+      document.getElementById("screen-results").classList.add("hidden");
+      document.getElementById("screen-game").classList.remove("hidden");
+
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      clearInterval(state.timerInterval);
+      state.questionSolved = false;
+      state.wrongAttempts = new Set();
+      state.timeLeft = state.timeLimit;
+      state.questionStartTime = Date.now();
+      lastAttemptCorrect = true;
+      lastSelectedText = "";
+
+      if (state.teams.length === 1) {
+        state.activeTeamIndex = 0;
+      }
+
+      const q = QUESTIONS[state.currentQIndex];
+
+      document.getElementById("feedback-overlay").classList.add("hidden");
+      document.getElementById("btn-show-procedure").classList.add("hidden");
+      document.getElementById("btn-reveal").classList.remove("hidden");
+      document.getElementById("rebound-banner").classList.add("hidden");
+
+      document.getElementById("hud-progress").textContent = `${state.currentQIndex + 1} / ${QUESTIONS.length}`;
+      document.getElementById("q-icon").textContent = q.icon;
+      document.getElementById("q-category").textContent = q.category;
+      document.getElementById("q-text").textContent = q.question;
+
+      renderScoreboard();
+      renderTiles();
+      startTimer();
+    }
+
+    function renderScoreboard() {
+      const container = document.getElementById("hud-scoreboard");
+      container.innerHTML = "";
+
+      state.teams.forEach((team, idx) => {
+        const isActive = idx === state.activeTeamIndex;
+        const colorCfg = TEAM_COLORS[idx % TEAM_COLORS.length];
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.onclick = () => {
+          if (state.teams.length > 1) selectActiveTeam(idx);
+        };
+        btn.className = `flex items-center gap-1.5 px-2.5 py-1 rounded-xl border transition ${
+          isActive
+            ? "bg-indigo-800 border-amber-400 ring-2 ring-amber-400/50 scale-105 shadow-lg"
+            : "bg-indigo-950/80 border-indigo-500/30 opacity-80 hover:opacity-100"
+        } ${state.teams.length === 1 ? "cursor-default" : "cursor-pointer"}`;
+
+        btn.innerHTML = `
+          <span class="w-2.5 h-2.5 rounded-full ${colorCfg.badge}"></span>
+          <span class="text-xs font-bold text-white truncate max-w-[110px]">${team.name}</span>
+          <span class="font-game text-xs sm:text-sm font-bold text-amber-300 bg-black/30 px-1.5 py-0.5 rounded-lg">${team.score} pts</span>
+        `;
+        container.appendChild(btn);
+      });
+
+      const activeTeam = state.teams[state.activeTeamIndex];
+      const badge = document.getElementById("active-team-badge");
+      badge.textContent = activeTeam.name;
+      badge.className = `font-bold text-sm sm:text-base ${TEAM_COLORS[state.activeTeamIndex % TEAM_COLORS.length].text}`;
+
+      const switchHint = document.getElementById("turn-switch-hint");
+      const prefix = document.getElementById("turn-label-prefix");
+      if (state.teams.length === 1) {
+        prefix.textContent = "Equipo participante:";
+        switchHint.classList.add("hidden");
+      } else {
+        prefix.textContent = "Turno de:";
+        switchHint.classList.remove("hidden");
+      }
+    }
+
+    function selectActiveTeam(index) {
+      state.activeTeamIndex = index;
+      playSound("click");
+      renderScoreboard();
+    }
+
+    function renderTiles() {
+      const grid = document.getElementById("tiles-grid");
+      grid.innerHTML = "";
+      const q = QUESTIONS[state.currentQIndex];
+
+      if (state.boardMode === "options") {
+        grid.className = "grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-5";
+        const tileColors = ["tile-blue", "tile-indigo", "tile-purple"];
+
+        q.options.forEach((opt, idx) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.id = `tile-${opt.letter}`;
+          btn.onclick = () => handleOptionAnswer(opt.letter);
+          btn.className = `wordwall-tile ${tileColors[idx % tileColors.length]} p-4 sm:p-6 text-left flex items-center gap-4 min-h-[84px] sm:min-h-[104px]`;
+
+          btn.innerHTML = `
+            <span class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/20 flex items-center justify-center font-game text-xl sm:text-2xl font-bold text-white shrink-0 shadow-inner">
+              ${opt.letter}
+            </span>
+            <span class="font-bold text-base sm:text-xl text-white leading-snug">
+              ${opt.text}
+            </span>
+          `;
+          grid.appendChild(btn);
+        });
+      } else {
+        grid.className = "grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3.5";
+        const tileColors = ["tile-blue", "tile-indigo", "tile-purple", "tile-blue"];
+
+        QUESTIONS.forEach((item, idx) => {
+          const isAlreadyMatched = state.solvedWordwallIds.has(item.id);
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.id = `ww-tile-${item.id}`;
+          btn.disabled = isAlreadyMatched;
+          btn.onclick = () => handleWordwallAnswer(item.id);
+
+          if (isAlreadyMatched) {
+            btn.className = "rounded-2xl p-3 sm:p-4 bg-indigo-950/30 border border-indigo-500/15 text-indigo-400/30 font-bold text-xs sm:text-sm min-h-[72px] flex items-center justify-center text-center cursor-default";
+            btn.innerHTML = `<span>✓ ${item.shortAnswer}</span>`;
+          } else {
+            btn.className = `wordwall-tile ${tileColors[idx % tileColors.length]} p-3 sm:p-4 text-center flex items-center justify-center min-h-[72px] sm:min-h-[84px]`;
+            btn.innerHTML = `
+              <span class="font-bold text-xs sm:text-base text-white leading-tight">
+                ${item.shortAnswer}
+              </span>
+            `;
+          }
+          grid.appendChild(btn);
+        });
+      }
+    }
+
+    function startTimer() {
+      updateTimerDisplay();
+      state.timerInterval = setInterval(() => {
+        if (state.questionSolved) {
+          clearInterval(state.timerInterval);
+          return;
+        }
+        state.timeLeft--;
+        updateTimerDisplay();
+
+        if (state.timeLeft <= 0) {
+          clearInterval(state.timerInterval);
+          handleTimeOut();
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      const el = document.getElementById("hud-timer");
+      const bar = document.getElementById("timer-progress-bar");
+      const mins = Math.floor(Math.max(0, state.timeLeft) / 60);
+      const secs = Math.max(0, state.timeLeft) % 60;
+      el.textContent = `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+
+      const pct = Math.max(0, (state.timeLeft / state.timeLimit) * 100);
+      bar.style.width = `${pct}%`;
+
+      if (state.timeLeft <= 10 && state.timeLeft > 0) {
+        el.classList.add("timer-urgent");
+      } else {
+        el.classList.remove("timer-urgent");
+      }
+    }
+
+    function handleTimeOut() {
+      playSound("wrong");
+      lastAttemptCorrect = false;
+      lastSelectedText = "Tiempo agotado (sin respuesta)";
+      const activeTeam = state.teams[state.activeTeamIndex];
+      activeTeam.totalTimeSec += state.timeLimit;
+
+      const overlay = document.getElementById("feedback-overlay");
+      document.getElementById("feedback-icon").textContent = "⏰";
+      document.getElementById("feedback-title").textContent = "¡Tiempo agotado!";
+      document.getElementById("feedback-title").className = "font-game text-2xl sm:text-4xl font-bold text-amber-600";
+      document.getElementById("feedback-subtitle").textContent = "No se sumaron puntos en este reto. Revisemos la justificación.";
+      overlay.classList.remove("hidden");
+
+      state.questionSolved = true;
+      disableAllTiles();
+      highlightCorrectTile();
+      document.getElementById("btn-reveal").classList.add("hidden");
+      document.getElementById("btn-show-procedure").classList.remove("hidden");
+
+      setTimeout(() => {
+        if (state.questionSolved) {
+          openExplanationModal(false);
+        }
+      }, 1200);
+    }
+
+    function disableAllTiles() {
+      document.querySelectorAll("#tiles-grid button").forEach(btn => {
+        btn.disabled = true;
+      });
+    }
+
+    function handleOptionAnswer(selectedLetter) {
+      if (state.questionSolved) return;
+
+      const q = QUESTIONS[state.currentQIndex];
+      const tile = document.getElementById(`tile-${selectedLetter}`);
+      const selectedOpt = q.options.find(o => o.letter === selectedLetter);
+
+      if (selectedLetter === q.correctLetter) {
+        tile.classList.add("tile-correct");
+        onCorrectAnswer();
+      } else {
+        tile.classList.add("tile-wrong");
+        lastSelectedText = `${selectedOpt.letter}. ${selectedOpt.text}`;
+        onWrongAnswer();
+      }
+    }
+
+    function handleWordwallAnswer(selectedQuestionId) {
+      if (state.questionSolved) return;
+      const q = QUESTIONS[state.currentQIndex];
+      const tile = document.getElementById(`ww-tile-${selectedQuestionId}`);
+      const selectedItem = QUESTIONS.find(item => item.id === selectedQuestionId);
+
+      if (selectedQuestionId === q.id) {
+        tile.classList.add("tile-correct");
+        state.solvedWordwallIds.add(q.id);
+        onCorrectAnswer();
+      } else {
+        tile.classList.add("tile-wrong");
+        lastSelectedText = selectedItem ? selectedItem.shortAnswer : "Opción incorrecta";
+        onWrongAnswer();
+      }
+    }
+
+    function onCorrectAnswer() {
+      state.questionSolved = true;
+      lastAttemptCorrect = true;
+      clearInterval(state.timerInterval);
+      disableAllTiles();
+      playSound("correct");
+
+      const elapsedSec = Math.max(1, Math.round((Date.now() - state.questionStartTime) / 1000));
+      const activeTeam = state.teams[state.activeTeamIndex];
+      activeTeam.score += 100;
+      activeTeam.correctCount += 1;
+      activeTeam.totalTimeSec += Math.min(elapsedSec, state.timeLimit);
+
+      renderScoreboard();
+
+      const overlay = document.getElementById("feedback-overlay");
+      document.getElementById("feedback-icon").textContent = "✅";
+      document.getElementById("feedback-title").textContent = "¡Correcto! +100 pts";
+      document.getElementById("feedback-title").className = "font-game text-2xl sm:text-4xl font-bold text-emerald-600";
+      document.getElementById("feedback-subtitle").textContent = `${activeTeam.name} acumula ${activeTeam.score} pts`;
+      overlay.classList.remove("hidden");
+
+      document.getElementById("rebound-banner").classList.add("hidden");
+      document.getElementById("btn-reveal").classList.add("hidden");
+      document.getElementById("btn-show-procedure").classList.remove("hidden");
+
+      setTimeout(() => {
+        if (state.questionSolved) {
+          openExplanationModal(true);
+        }
+      }, 1100);
+    }
+
+    function onWrongAnswer() {
+      state.questionSolved = true;
+      lastAttemptCorrect = false;
+      clearInterval(state.timerInterval);
+      disableAllTiles();
+      playSound("wrong");
+
+      const elapsedSec = Math.max(1, Math.round((Date.now() - state.questionStartTime) / 1000));
+      const activeTeam = state.teams[state.activeTeamIndex];
+      activeTeam.totalTimeSec += Math.min(elapsedSec, state.timeLimit);
+
+      highlightCorrectTile();
+
+      const overlay = document.getElementById("feedback-overlay");
+      document.getElementById("feedback-icon").textContent = "❌";
+      document.getElementById("feedback-title").textContent = "¡Respuesta Incorrecta! (0 pts)";
+      document.getElementById("feedback-title").className = "font-game text-2xl sm:text-4xl font-bold text-rose-600";
+      document.getElementById("feedback-subtitle").textContent = `${activeTeam.name} no suma puntos. Revisa la justificación antes de continuar.`;
+      overlay.classList.remove("hidden");
+
+      const reboundBanner = document.getElementById("rebound-banner");
+      reboundBanner.textContent = `❌ ${activeTeam.name} falló. Se mostrará la justificación y se pasará al siguiente reto.`;
+      reboundBanner.classList.remove("hidden");
+
+      document.getElementById("btn-reveal").classList.add("hidden");
+      document.getElementById("btn-show-procedure").classList.remove("hidden");
+
+      setTimeout(() => {
+        if (state.questionSolved) {
+          openExplanationModal(false);
+        }
+      }, 1300);
+    }
+
+    function highlightCorrectTile() {
+      const q = QUESTIONS[state.currentQIndex];
+      if (state.boardMode === "options") {
+        const tile = document.getElementById(`tile-${q.correctLetter}`);
+        if (tile) tile.classList.add("tile-correct");
+      } else {
+        const tile = document.getElementById(`ww-tile-${q.id}`);
+        if (tile) tile.classList.add("tile-correct");
+        state.solvedWordwallIds.add(q.id);
+      }
+    }
+
+    function skipOrReveal() {
+      if (state.questionSolved) return;
+      state.questionSolved = true;
+      lastAttemptCorrect = false;
+      lastSelectedText = "Solución revelada sin responder";
+      clearInterval(state.timerInterval);
+      disableAllTiles();
+      highlightCorrectTile();
+      document.getElementById("btn-reveal").classList.add("hidden");
+      document.getElementById("btn-show-procedure").classList.remove("hidden");
+      openExplanationModal(false);
+    }
+
+    function openExplanationModal(earnedPoints = true) {
+      const q = QUESTIONS[state.currentQIndex];
+      const correctOpt = q.options.find(o => o.letter === q.correctLetter);
+
+      document.getElementById("modal-correct-answer").textContent = `${correctOpt.letter}. ${correctOpt.text}`;
+      document.getElementById("modal-explanation-text").textContent = q.procedure;
+
+      const statusBadge = document.getElementById("modal-status-badge");
+      const ptsBadge = document.getElementById("modal-points-earned");
+      const wrongBox = document.getElementById("modal-wrong-choice-box");
+      const userChoiceSpan = document.getElementById("modal-user-choice");
+      const footerNote = document.getElementById("modal-footer-note");
+
+      if (earnedPoints) {
+        statusBadge.textContent = "✅ ¡Respuesta Correcta!";
+        statusBadge.className = "px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-400/40";
+        ptsBadge.textContent = `+100 pts (${state.teams[state.activeTeamIndex].name})`;
+        ptsBadge.className = "font-game text-base sm:text-lg font-bold text-emerald-400";
+        wrongBox.classList.add("hidden");
+        footerNote.textContent = "💡 Excelente decisión financiera. Continúa con el siguiente reto.";
+      } else {
+        statusBadge.textContent = "❌ Justificación del Error";
+        statusBadge.className = "px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-400/40";
+        ptsBadge.textContent = `0 pts (${state.teams[state.activeTeamIndex].name})`;
+        ptsBadge.className = "font-game text-base sm:text-lg font-bold text-rose-400";
+        if (lastSelectedText) {
+          userChoiceSpan.textContent = lastSelectedText;
+          wrongBox.classList.remove("hidden");
+        } else {
+          wrongBox.classList.add("hidden");
+        }
+        footerNote.textContent = "📌 No es posible repetir esta pregunta. Revisa la justificación y continúa.";
+      }
+
+      const nextBtn = document.getElementById("btn-next-question");
+      if (state.currentQIndex >= QUESTIONS.length - 1) {
+        nextBtn.textContent = "🏆 Ver Resultados Finales";
+      } else {
+        nextBtn.textContent = "Siguiente Reto →";
+      }
+
+      document.getElementById("modal-procedure").classList.remove("hidden");
+    }
+
+    function nextQuestion() {
+      playSound("click");
+      document.getElementById("modal-procedure").classList.add("hidden");
+
+      if (state.currentQIndex < QUESTIONS.length - 1) {
+        state.currentQIndex++;
+        if (state.teams.length > 1) {
+          state.activeTeamIndex = state.currentQIndex % state.teams.length;
+        } else {
+          state.activeTeamIndex = 0;
+        }
+        loadQuestion();
+      } else {
+        showFinalResults();
+      }
+    // ==========================================
+    // 10. PERSISTENCIA EN LA NUBE Y RESULTADOS
+    // ==========================================
+    function getSavedHistory() {
+      return sharedHistory;
+    }
+
+    async function saveTeamsToHistory(teamsList) {
+      const now = new Date();
+      const timeStr = now.toLocaleDateString([], { day: "2-digit", month: "2-digit" }) + " " + now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+      for (const t of teamsList) {
+        const maxPossible = QUESTIONS.length * 100;
+        const accuracy = state.teams.length === 1
+          ? Math.round((t.correctCount / QUESTIONS.length) * 100)
+          : Math.round((t.score / maxPossible) * 100);
+
+        const entry = {
+          name: t.name,
+          score: t.score,
+          correctCount: t.correctCount,
+          totalQuestions: QUESTIONS.length,
+          accuracy: accuracy,
+          totalTimeSec: t.totalTimeSec,
+          mode: state.teams.length === 1 ? "Individual (8 retos)" : `Grupal (${state.teams.length} equipos)`,
+          timestamp: timeStr,
+          createdAt: Date.now()
+        };
+
+        // Actualización inmediata en memoria
+        sharedHistory.push(entry);
+        sharedHistory.sort((a, b) => b.score - a.score || a.totalTimeSec - b.totalTimeSec);
+        updateHistoryBadges();
+
+        // Sincronización en la nube para que otros PCs lo vean
+        if (typeof cloudSaveTeam === "function") {
+          await cloudSaveTeam(entry);
+        }
+      }
+    }
+
+    function updateHistoryBadges() {
+      const count = getSavedHistory().length;
+      const b1 = document.getElementById("setup-history-count");
+      const b2 = document.getElementById("results-history-count");
+      if (b1) b1.textContent = count;
+      if (b2) b2.textContent = count;
+    }
+
+    function showFinalResults() {
+      clearInterval(state.timerInterval);
+      playSound("win");
+      launchConfetti();
+
+      saveTeamsToHistory(state.teams);
+
+      document.getElementById("screen-game").classList.add("hidden");
+      document.getElementById("screen-results").classList.remove("hidden");
+
+      const headline = document.getElementById("winner-headline");
+      const substats = document.getElementById("winner-substats");
+      const board = document.getElementById("final-leaderboard");
+      board.innerHTML = "";
+
+      if (state.teams.length === 1) {
+        const solo = state.teams[0];
+        const pct = Math.round((solo.correctCount / QUESTIONS.length) * 100);
+        headline.textContent = `¡Reto completado, ${solo.name}!`;
+        substats.textContent = `Obtuviste ${solo.score} de 800 puntos (${solo.correctCount}/8 aciertos · ${pct}% de efectividad)`;
+
+        board.innerHTML = `
+          <div class="bg-amber-400/20 border-2 border-amber-400 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
+            <div class="flex items-center gap-3.5">
+              <span class="text-4xl">🥇</span>
+              <div class="text-left">
+                <div class="font-bold text-xl sm:text-2xl text-white">${solo.name}</div>
+                <div class="text-xs sm:text-sm text-amber-200">Aciertos: ${solo.correctCount} de 8 · Tiempo total: ${solo.totalTimeSec}s</div>
+              </div>
+            </div>
+            <div class="font-game text-3xl sm:text-4xl font-bold text-amber-300">
+              ${solo.score} <span class="text-lg text-amber-200">/ 800 pts</span>
+            </div>
+          </div>
+        `;
+      } else {
+        const sorted = [...state.teams].sort((a, b) => b.score - a.score || a.totalTimeSec - b.totalTimeSec);
+        const topScore = sorted[0].score;
+        const winners = sorted.filter(t => t.score === topScore);
+
+        if (winners.length > 1) {
+          headline.textContent = `¡Empate en la cima: ${winners.map(w => w.name).join(" y ")}!`;
+        } else {
+          headline.textContent = `¡Ganador: ${winners[0].name}!`;
+        }
+        substats.textContent = "Resultados guardados automáticamente en la Tabla Histórica de Posiciones.";
+
+        const medals = ["🥇", "🥈", "🥉", "🏅", "🏅", "🏅", "🏅", "🏅", "🏅", "🏅"];
+        sorted.forEach((team, idx) => {
+          const row = document.createElement("div");
+          const isFirst = idx === 0;
+          row.className = `flex items-center justify-between p-4 rounded-2xl border ${
+            isFirst
+              ? "bg-amber-400/20 border-amber-400 shadow-lg scale-[1.01]"
+              : "bg-indigo-900/60 border-indigo-500/30"
+          }`;
+          row.innerHTML = `
+            <div class="flex items-center gap-3 text-left">
+              <span class="text-2xl sm:text-3xl">${medals[idx] || "🏅"}</span>
+              <div>
+                <div class="font-bold text-lg sm:text-xl text-white">${team.name}</div>
+                <div class="text-xs text-indigo-200">${team.correctCount} respuestas correctas · Tiempo: ${team.totalTimeSec}s</div>
+              </div>
+            </div>
+            <span class="font-game text-2xl sm:text-3xl font-bold text-amber-300">${team.score} pts</span>
+          `;
+          board.appendChild(row);
+        });
+      }
+    }
+
+    function openLeaderboardModal() {
+      playSound("click");
+      const container = document.getElementById("history-list-container");
+      const history = getSavedHistory();
+      container.innerHTML = "";
+
+      if (history.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-10 text-indigo-300 bg-indigo-950/50 rounded-2xl border border-indigo-500/20">
+            <div class="text-4xl mb-2">📊</div>
+            <p class="font-bold">Aún no hay equipos registrados en el historial.</p>
+            <p class="text-xs mt-1">¡Completa una partida para aparecer aquí!</p>
+          </div>
+        `;
+      } else {
+        const medals = ["🥇", "🥈", "🥉"];
+        history.forEach((entry, idx) => {
+          const row = document.createElement("div");
+          row.className = `flex items-center justify-between p-3.5 rounded-2xl border ${
+            idx === 0
+              ? "bg-amber-400/20 border-amber-400"
+              : "bg-indigo-950/80 border-indigo-500/30"
+          }`;
+          row.innerHTML = `
+            <div class="flex items-center gap-3">
+              <span class="font-game text-lg font-bold w-8 text-center text-amber-300">${medals[idx] || `#${idx + 1}`}</span>
+              <div>
+                <div class="font-bold text-base text-white">${entry.name}</div>
+                <div class="text-xs text-indigo-300">
+                  ${entry.correctCount}/${entry.totalQuestions} aciertos (${entry.accuracy}%) · ⏱️ ${entry.totalTimeSec}s · ${entry.mode}
+                </div>
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="font-game text-xl font-bold text-amber-300">${entry.score} pts</div>
+              <div class="text-[11px] text-indigo-400">${entry.timestamp}</div>
+            </div>
+          `;
+          container.appendChild(row);
+        });
+      }
+
+      document.getElementById("modal-leaderboard").classList.remove("hidden");
+    }
+
+    function closeLeaderboardModal() {
+      document.getElementById("modal-leaderboard").classList.add("hidden");
+    }
+
+    function clearHistory() {
+      playSound("click");
+      document.getElementById("modal-clear-confirm").classList.remove("hidden");
+    }
+
+    function closeClearConfirmModal() {
+      document.getElementById("modal-clear-confirm").classList.add("hidden");
+    }
+
+    async function executeClearHistory() {
+      closeClearConfirmModal();
+      sharedHistory = [];
+      updateHistoryBadges();
+      openLeaderboardModal();
+      if (typeof cloudClearHistory === "function") {
+        await cloudClearHistory();
+      }
+    }
+
+    function openRulesModal() {
+      playSound("click");
+      document.getElementById("modal-rules").classList.remove("hidden");
+    }
+
+    function closeRulesModal() {
+      document.getElementById("modal-rules").classList.add("hidden");
+    }
+
+    function launchConfetti() {
+      const colors = ["#fbbf24", "#34d399", "#60a5fa", "#f472b6", "#a78bfa"];
+      for (let i = 0; i < 70; i++) {
+        const piece = document.createElement("div");
+        piece.className = "confetti-piece";
+        piece.style.left = `${Math.random() * 100}vw`;
+        piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.animationDuration = `${(Math.random() * 2 + 2).toFixed(2)}s`;
+        piece.style.animationDelay = `${(Math.random() * 0.8).toFixed(2)}s`;
+        document.body.appendChild(piece);
+        setTimeout(() => piece.remove(), 4500);
+      }
+    }
+
+    function restartSameSettings() {
+      playSound("click");
+      state.teams.forEach(t => {
+        t.score = 0;
+        t.correctCount = 0;
+        t.totalTimeSec = 0;
+      });
+      state.currentQIndex = 0;
+      state.activeTeamIndex = 0;
+      state.solvedWordwallIds = new Set();
+
+      document.getElementById("screen-results").classList.add("hidden");
+      document.getElementById("screen-game").classList.remove("hidden");
+      loadQuestion();
+    }
+
+    function confirmHome() {
+      document.getElementById("modal-confirm").classList.remove("hidden");
+    }
+
+    function closeConfirmModal() {
+      document.getElementById("modal-confirm").classList.add("hidden");
+    }
+
+    function goToSetup() {
+      clearInterval(state.timerInterval);
+      closeConfirmModal();
+      document.getElementById("modal-procedure").classList.add("hidden");
+      document.getElementById("screen-game").classList.add("hidden");
+      document.getElementById("screen-results").classList.add("hidden");
+      document.getElementById("screen-setup").classList.remove("hidden");
+      updateHistoryBadges();
+    }
+
+    window.onload = function () {
+      initSpaceBackground();
+      setTeamCount(1);
+      updateHistoryBadges();
+    };
+  </script>
+
+  <!-- Sincronización en tiempo real entre múltiples computadores -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc, onSnapshot, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    async function initCloudSync() {
+      try {
+        if (typeof __firebase_config === "undefined") return;
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const appId = typeof __app_id !== "undefined" ? __app_id : "reto-financiero-itm";
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // 1. Autenticación obligatoria antes de consultar
+        if (typeof __initial_auth_token !== "undefined" && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
+        }
+
+        const user = auth.currentUser;
+        if (!user) return;
+
+        // 2. Colección pública compartida entre todos los computadores
+        const resultsCol = collection(db, "artifacts", appId, "public", "data", "resultados_reto");
+
+        // 3. Escucha en tiempo real de los resultados de cualquier PC
+        onSnapshot(
+          resultsCol,
+          (snapshot) => {
+            const list = [];
+            snapshot.forEach((d) => {
+              list.push({ id: d.id, ...d.data() });
+            });
+            list.sort((a, b) => (b.score || 0) - (a.score || 0) || (a.totalTimeSec || 0) - (b.totalTimeSec || 0));
+            sharedHistory = list;
+            updateHistoryBadges();
+
+            const lbModal = document.getElementById("modal-leaderboard");
+            if (lbModal && !lbModal.classList.contains("hidden")) {
+              openLeaderboardModal();
+            }
+          },
+          (error) => {
+            console.error("Error al sincronizar resultados:", error);
+          }
+        );
+
+        // 4. Guardar nuevo resultado en la nube
+        cloudSaveTeam = async (entry) => {
+          if (!auth.currentUser) return;
+          try {
+            await addDoc(resultsCol, entry);
+          } catch (err) {
+            console.error("Error guardando resultado:", err);
+          }
+        };
+
+        // 5. Borrar historial compartido
+        cloudClearHistory = async () => {
+          if (!auth.currentUser) return;
+          try {
+            const snap = await getDocs(resultsCol);
+            const deletions = [];
+            snap.forEach((d) => {
+              deletions.push(deleteDoc(doc(db, "artifacts", appId, "public", "data", "resultados_reto", d.id)));
+            });
+            await Promise.all(deletions);
+          } catch (err) {
+            console.error("Error limpiando historial:", err);
+          }
+        };
+      } catch (e) {
+        console.error("Error iniciando almacenamiento compartido:", e);
+      }
+    }
+
+    initCloudSync();
+  </script>
+</body>
+</html>
